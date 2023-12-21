@@ -1,11 +1,20 @@
 const request = require("supertest");
 const db = require('./db')
+const jwt = require('jsonwebtoken');
+const express = require('express')
 
 const app = require("../app");
 const User = require("../models/user.model");
+const auth = require("../middleware/auth")
 
 const USERNAME = "Alice";
 const PASSWORD = "1234";
+async function createUser() {
+    const user = new User();
+    user.username = USERNAME;
+    user.setPassword(PASSWORD);
+    await user.save()
+}
 
 beforeAll(async () => await db.connect())
 
@@ -26,7 +35,7 @@ describe("POST /api/auth/signup", () => {
         expect(user.username).toBe(USERNAME);
         expect(user.isPasswordValid(PASSWORD)).toBeTruthy();
     });
-    
+
     it("should not create user with same username", async () => {
         const res = await request(app).post("/api/auth/signup")
             .send({
@@ -51,6 +60,125 @@ describe("POST /api/auth/signup", () => {
             });
         expect(res.statusCode).toBe(400);
     });
+});
+
+describe("POST /api/auth/login", () => {
+    it("should return valid JWT token", async () => {
+        await createUser();
+
+        const res = await request(app).post("/api/auth/login")
+            .send({
+                username: USERNAME,
+                password: PASSWORD,
+            });
+        expect(res.statusCode).toBe(200);
+        expect(res.body.message).toBe("Token expires in 1h");
+        jwt.verify(res.body.token, process.env.TOKEN_SECRET, (err, payload) => {
+            expect(err).toBeFalsy();
+            expect(payload.username).toBe(USERNAME);
+        });
+    });
+
+    it("should return 400 with incorrect password", async () => {
+        await createUser();
+
+        const res = await request(app).post("/api/auth/login")
+            .send({
+                username: USERNAME,
+                password: "12332",
+            });
+        expect(res.statusCode).toBe(400);
+        expect(res.body.message).toBe("Incorrect Password");
+    });
+
+    it("should return 400 when user is not found", async () => {
+        const res = await request(app).post("/api/auth/login")
+            .send({
+                username: USERNAME,
+                password: PASSWORD,
+            });
+        expect(res.statusCode).toBe(400);
+        expect(res.body.message).toBe("User not found.");
+    });
+});
+
+describe("authenticateToken", () => {
+    let mockRequest;
+    let mockResponse;
+    let nextFunction = jest.fn();
+
+    beforeEach(() => {
+        mockRequest = {};
+        mockResponse = { sendStatus: jest.fn() };
+    });
+
+    it("should verify valid token", async () => {
+        await createUser();
+        const token = jwt.sign(
+            { username: USERNAME },
+            process.env.TOKEN_SECRET,
+            { expiresIn: '1h' })
+        mockRequest = {
+            headers: {
+                authorization: "Bearer " + token
+            }
+        }
+
+        auth.authenticateToken(
+            mockRequest,
+            mockResponse,
+            nextFunction
+        );
+
+        expect(mockRequest.username).toBe(USERNAME);
+    })
+
+    it("should return 403 for invalid token", async () => {
+        await createUser();
+        const token = "hfsdahiaogioi"
+        mockRequest = {
+            headers: {
+                authorization: "Bearer " + token
+            }
+        }
+
+        auth.authenticateToken(
+            mockRequest,
+            mockResponse,
+            nextFunction
+        );
+
+        expect(mockResponse.sendStatus).toBeCalledWith(403);
+    })
+
+    it("should return 401 without header", async () => {
+        await createUser();
+
+        auth.authenticateToken(
+            mockRequest,
+            mockResponse,
+            nextFunction
+        );
+
+        expect(mockResponse.sendStatus).toBeCalledWith(401);
+    })
+
+    it("should return 401 for null token", async () => {
+        await createUser();
+        mockRequest = {
+            headers: {
+                authorization: "d"
+            }
+        }
+
+        auth.authenticateToken(
+            mockRequest,
+            mockResponse,
+            nextFunction
+        );
+
+        expect(mockResponse.sendStatus).toBeCalledWith(401);
+    })
 });
 
 describe("isPasswordValid", () => {
