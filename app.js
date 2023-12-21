@@ -11,12 +11,7 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// tmp route
-app.get("/", (req, res) => {
-  res.send("Hi.");
-});
-app.post("/", (req, res) => {
-    res.json(req.body);
-});
+const user = require('./routes/auth.route');
+app.use('/api/auth', user);
 
 module.exports = app
