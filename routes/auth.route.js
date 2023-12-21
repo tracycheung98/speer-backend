@@ -4,9 +4,13 @@ const router = express.Router();
 require("dotenv").config();
 
 const User = require("../models/user.model");
+const {
+    getUser,
+    createUser,
+  } = require("../controllers/user.controller");
 
 router.post("/login", (req, res) => {
-    User.findOne({ username: req.body.username })
+    getUser(req.body.username)
         .then(user => {
             if (user === null) {
                 return res.status(400).send({
@@ -41,11 +45,7 @@ router.post("/signup", (req, res) => {
         });
     }
 
-    let newUser = new User();
-    newUser.username = req.body.username
-    newUser.setPassword(req.body.password);
-
-    newUser.save()
+    createUser(req.body.username, req.body.password)
         .then((user) => {
             return res.status(200).send({
                 message: "User added successfully.",

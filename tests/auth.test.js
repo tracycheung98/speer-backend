@@ -6,14 +6,12 @@ const express = require('express')
 const app = require("../app");
 const User = require("../models/user.model");
 const auth = require("../middleware/auth")
+const { getUser, createUser } = require("../controllers/user.controller")
 
 const USERNAME = "Alice";
 const PASSWORD = "1234";
-async function createUser() {
-    const user = new User();
-    user.username = USERNAME;
-    user.setPassword(PASSWORD);
-    await user.save()
+async function createTmpUser() {
+    await createUser(USERNAME, PASSWORD)
 }
 
 beforeAll(async () => await db.connect())
@@ -31,7 +29,7 @@ describe("POST /api/auth/signup", () => {
             });
         expect(res.statusCode).toBe(200);
         expect(res.body).toMatchObject({ message: "User added successfully." });
-        const user = await User.findOne({ username: USERNAME });
+        const user = await getUser(USERNAME);
         expect(user.username).toBe(USERNAME);
         expect(user.isPasswordValid(PASSWORD)).toBeTruthy();
     });
@@ -64,7 +62,7 @@ describe("POST /api/auth/signup", () => {
 
 describe("POST /api/auth/login", () => {
     it("should return valid JWT token", async () => {
-        await createUser();
+        await createTmpUser();
 
         const res = await request(app).post("/api/auth/login")
             .send({
@@ -80,7 +78,7 @@ describe("POST /api/auth/login", () => {
     });
 
     it("should return 400 with incorrect password", async () => {
-        await createUser();
+        await createTmpUser();
 
         const res = await request(app).post("/api/auth/login")
             .send({
@@ -113,7 +111,7 @@ describe("authenticateToken", () => {
     });
 
     it("should verify valid token", async () => {
-        await createUser();
+        await createTmpUser();
         const token = jwt.sign(
             { username: USERNAME },
             process.env.TOKEN_SECRET,
@@ -134,7 +132,7 @@ describe("authenticateToken", () => {
     })
 
     it("should return 403 for invalid token", async () => {
-        await createUser();
+        await createTmpUser();
         const token = "hfsdahiaogioi"
         mockRequest = {
             headers: {
@@ -152,7 +150,7 @@ describe("authenticateToken", () => {
     })
 
     it("should return 401 without header", async () => {
-        await createUser();
+        await createTmpUser();
 
         auth.authenticateToken(
             mockRequest,
@@ -164,7 +162,7 @@ describe("authenticateToken", () => {
     })
 
     it("should return 401 for null token", async () => {
-        await createUser();
+        await createTmpUser();
         mockRequest = {
             headers: {
                 authorization: "d"
