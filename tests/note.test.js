@@ -1,5 +1,5 @@
 const request = require("supertest");
-const db = require('./db')
+const { setupDB } = require('./db')
 const jwt = require('jsonwebtoken');
 
 const app = require("../app");
@@ -25,16 +25,12 @@ let user;
 let user2;
 
 
-beforeAll(async () => await db.connect("note-test"))
+setupDB("note-test");
 
 beforeEach(async () => {
     user = await createUser(USERNAME, PASSWORD);
     user2 = await createUser(USERNAME_2, PASSWORD);
 })
-
-afterEach(async () => await db.cleanupDatabase())
-
-afterAll(async () => await db.closeDatabase())
 
 describe("JWT middleware", () => {
     it("should return 401 with invalid token", async () => {

@@ -2,19 +2,29 @@ const mongoose = require('mongoose');
 
 require("dotenv").config();
 
-module.exports.connect = async (database) => {
+const connect = async (database) => {
     await mongoose.connect(process.env.MONGODB_URI.concat(`/${database}`));
 }
 
-module.exports.closeDatabase = async () => {
+const closeDatabase = async () => {
     await mongoose.connection.dropDatabase();
     await mongoose.connection.close();
 }
 
-module.exports.cleanupDatabase = async () => {
+const cleanupDatabase = async () => {
     const collections = Object.keys(mongoose.connection.collections)
     for (const collectionName of collections) {
-      const collection = mongoose.connection.collections[collectionName]
-      await collection.deleteMany()
+        const collection = mongoose.connection.collections[collectionName]
+        await collection.deleteMany()
+    }
+}
+
+module.exports = {
+    setupDB(databaseName) {
+        beforeAll(async () => await connect(databaseName))
+
+        afterEach(async () => await cleanupDatabase())
+
+        afterAll(async () => await closeDatabase())
     }
 }

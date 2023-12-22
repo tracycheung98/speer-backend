@@ -1,5 +1,5 @@
 const request = require("supertest");
-const db = require('./db')
+const { setupDB } = require('./db')
 const jwt = require('jsonwebtoken');
 
 const app = require("../app");
@@ -13,11 +13,7 @@ async function createTmpUser() {
     await createUser(USERNAME, PASSWORD)
 }
 
-beforeAll(async () => await db.connect("auth-test"))
-
-afterEach(async () => await db.cleanupDatabase())
-
-afterAll(async () => await db.closeDatabase())
+setupDB("auth-test");
 
 describe("POST /api/auth/signup", () => {
     it("should create user", async () => {

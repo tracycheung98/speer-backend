@@ -1,5 +1,5 @@
 const request = require("supertest");
-const db = require('./db')
+const { setupDB } = require('./db')
 const jwt = require('jsonwebtoken');
 
 const app = require("../app");
@@ -24,16 +24,12 @@ const TOKEN = jwt.sign(
 let user;
 let user2;
 
-beforeAll(async () => await db.connect("search-test"))
+setupDB("search-test");
 
 beforeEach(async () => {
     user = await createUser(USERNAME, PASSWORD);
     user2 = await createUser(USERNAME_2, PASSWORD);
 })
-
-afterEach(async () => await db.cleanupDatabase())
-
-afterAll(async () => await db.closeDatabase())
 
 describe("GET /search?q=:query", () => {
     let note1;
