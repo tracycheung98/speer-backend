@@ -26,6 +26,15 @@ const getCommonHandler = (res, message) => {
         })}
 }
 
+router.get("", async (req, res) => {
+    const user = await getUser(req.username);
+    getNotesForUser(user)
+        .then(notes => {
+            return res.status(200).send(notes);
+        })
+        .catch(getCommonHandler(res, "Note not found"));
+})
+
 router.get("/:id", (req, res) => {
     getNote(req.params.id)
         .then(note => {
