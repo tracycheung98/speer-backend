@@ -218,7 +218,7 @@ describe("DELETE /api/notes", () => {
             .set("Authorization", `Bearer ${TOKEN}`);
 
         expect(res.statusCode).toBe(200);
-        let note = await getNote(res.body._id);
+        let note = await getNote(note1._id);
         expect(note).toBe(null);
     });
 
@@ -233,6 +233,41 @@ describe("DELETE /api/notes", () => {
     it("should return 400 if user is not the owner", async () => {
         const res = await request(app)
             .delete(`/api/notes/${note2._id}`)
+            .set("Authorization", `Bearer ${TOKEN}`);
+
+        expect(res.statusCode).toBe(400);
+    });
+});
+
+describe("POST /api/notes/:id/share", () => {
+    let note1;
+    let note2;
+    beforeEach(async () => {
+        note1 = await createNote(CONTENT_1, user);
+        note2 = await createNote(CONTENT_2, user2);
+    })
+
+    it("should share note", async () => {
+        const res = await request(app)
+            .post(`/api/notes/${note1._id}/share`)
+            .set("Authorization", `Bearer ${TOKEN}`);
+
+        expect(res.statusCode).toBe(200);
+        let note = await getNote(note1._id);
+        expect(note.isPublic).toBeTruthy();
+    });
+
+    it("should return 400 if note is not found", async () => {
+        const res = await request(app)
+            .post("/api/notes/fsafsaf/share")
+            .set("Authorization", `Bearer ${TOKEN}`);
+
+        expect(res.statusCode).toBe(400);
+    });
+
+    it("should return 400 if user is not the owner", async () => {
+        const res = await request(app)
+            .post(`/api/notes/${note2._id}/share`)
             .set("Authorization", `Bearer ${TOKEN}`);
 
         expect(res.statusCode).toBe(400);

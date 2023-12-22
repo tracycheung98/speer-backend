@@ -95,9 +95,30 @@ router.delete("/:id", async (req, res) => {
     }
     deleteNote(req.params.id)
         .then(notes => {
-            return res.status(200).send({ message: "Delete sucessfully" });
+            return res.status(200).send({ message: "Deleted note sucessfully" });
         })
         .catch(getCommonHandler(res, "Cannot delete note"));
+})
+
+router.post("/:id/share", async (req, res) => {
+    const user = await getUser(req.username);
+    try {
+        var note = await getNote(req.params.id);
+    } catch (err) {
+        return res.status(400).send({
+            message: `Cannot find note with id: ${req.params.id}`
+        });
+    }
+    if (!note.owner.equals(user._id)) {
+        return res.status(400).send({
+            message: "User does not own the note"
+        });
+    }
+    shareNote(req.params.id)
+        .then(notes => {
+            return res.status(200).send({ message: "Shared note sucessfully" });
+        })
+        .catch(getCommonHandler(res, "Cannot share note"));
 })
 
 module.exports = router;
