@@ -8,6 +8,7 @@ const Note = require("../models/note.model");
 const {
     getNote,
     createNote,
+    shareNote,
 } = require("../controllers/note.controller");
 require("dotenv").config();
 
@@ -114,6 +115,29 @@ describe("GET /api/notes/:id", () => {
             .set("Authorization", `Bearer ${TOKEN}`);
 
         expect(res.statusCode).toBe(400);
+    });
+
+    it("should return 400 if note is not visible", async () => {
+        let note = await createNote(CONTENT_1, user2);
+
+        const res = await request(app)
+            .get(`/api/notes/${note._id}`)
+            .set("Authorization", `Bearer ${TOKEN}`);
+
+        expect(res.statusCode).toBe(400);
+    });
+
+    it("should return note if public", async () => {
+        let note = await createNote(CONTENT_1, user2);
+        shareNote(note._id);
+
+        const res = await request(app)
+            .get(`/api/notes/${note._id}`)
+            .set("Authorization", `Bearer ${TOKEN}`);
+
+        expect(res.statusCode).toBe(200);
+        expect(res.body.content).toBe(CONTENT_1);
+        expect(res.body.isPublic).toBeTruthy();
     });
 });
 

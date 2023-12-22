@@ -34,12 +34,29 @@ router.get("", async (req, res) => {
         .catch(getCommonHandler(res, "Note not found"));
 })
 
-router.get("/:id", (req, res) => {
-    getNote(req.params.id)
-        .then(note => {
-            return res.status(200).send(note);
-        })
-        .catch(getCommonHandler(res, "Note not found"));
+router.get("/:id", async (req, res) => {
+    const user = await getUser(req.username);
+    try {
+        var note = await getNote(req.params.id);
+    } catch (err) {
+        return res.status(400).send({
+            message: `Cannot find note with id: ${req.params.id}`
+        });
+    }
+    if (note == null) {
+        return res.status(400).send({
+            message: `Cannot find note with id: ${req.params.id}`
+        });
+    }
+    if (note.isPublic){
+        return res.status(200).send(note);
+    }
+    if (!note.owner.equals(user._id)) {
+        return res.status(400).send({
+            message: "Not authorized"
+        });
+    }
+    return res.status(200).send(note);
 })
 
 router.post("", async (req, res) => {
