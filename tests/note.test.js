@@ -127,3 +127,79 @@ describe("GET /api/notes/:id", () => {
         expect(res.statusCode).toBe(400);
     });
 });
+
+describe("POST /api/notes", () => {
+    it("should create note", async () => {
+        const res = await request(app)
+            .post("/api/notes")
+            .send({
+                content: CONTENT_1
+            })
+            .set("Authorization", `Bearer ${TOKEN}`);
+
+        expect(res.statusCode).toBe(200);
+        expect(res.body.content).toBe(CONTENT_1);
+        expect(res.body.isPublic).toBeFalsy();
+        expect(res.body.owner).toBe(user._id.toString());
+        let note = await getNote(res.body._id);
+        expect(note.content).toBe(CONTENT_1);
+        expect(note.isPublic).toBeFalsy();
+        expect(note.owner.toString()).toBe(user._id.toString());
+    });
+
+    it("should return 400 if content is not found", async () => {
+        const res = await request(app)
+            .post("/api/notes")
+            .set("Authorization", `Bearer ${TOKEN}`);
+
+        expect(res.statusCode).toBe(400);
+    });
+});
+
+describe("PUT /api/notes", () => {
+    let note1;
+    let note2;
+    beforeEach(async () => {
+        note1 = await createNote(CONTENT_1, user);
+        note2 = await createNote(CONTENT_2, user2);
+    })
+
+    it("should update note", async () => {
+        const res = await request(app)
+            .put("/api/notes/" + note1._id)
+            .send({
+                content: CONTENT_3
+            })
+            .set("Authorization", `Bearer ${TOKEN}`);
+
+        expect(res.statusCode).toBe(200);
+        let note = await getNote(res.body._id);
+        expect(note.content).toBe(CONTENT_3);
+        expect(note.isPublic).toBeFalsy();
+        expect(note.owner.toString()).toBe(user._id.toString());
+    });
+
+    it("should return 400 if content is not found", async () => {
+        const res = await request(app)
+            .put("/api/notes/" + note1._id)
+            .set("Authorization", `Bearer ${TOKEN}`);
+
+        expect(res.statusCode).toBe(400);
+    });
+
+    it("should return 400 if note is not found", async () => {
+        const res = await request(app)
+            .put("/api/notes/fsafsaf")
+            .set("Authorization", `Bearer ${TOKEN}`);
+
+        expect(res.statusCode).toBe(400);
+    });
+
+    it("should return 400 if user is not the owner", async () => {
+        const res = await request(app)
+            .put(`/api/notes/${note2._id}`)
+            .set("Authorization", `Bearer ${TOKEN}`);
+
+        expect(res.statusCode).toBe(400);
+    });
+});
