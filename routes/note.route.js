@@ -1,5 +1,3 @@
-
-
 const express = require("express");
 const router = express.Router();
 
@@ -20,7 +18,7 @@ router.use(authenticateToken);
 
 const getCommonHandler = (res, message) => {
     return err => {
-        console.log(err);
+        // console.log(err);
         return res.status(400).send({
             message: message,
         })

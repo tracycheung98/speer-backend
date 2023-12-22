@@ -1,7 +1,6 @@
 const request = require("supertest");
 const db = require('./db')
 const jwt = require('jsonwebtoken');
-const express = require('express');
 
 const app = require("../app");
 const User = require("../models/user.model");

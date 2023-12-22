@@ -32,6 +32,21 @@ const shareNote = async (noteId) => {
     return Note.findByIdAndUpdate(noteId, { isPublic: true });
 }
 
+const searchNoteForUser = async (user, keyword) => {
+    return Note.find(
+        {
+            $and: [
+                { content: { $regex: keyword } },
+                {
+                    $or: [
+                        { owner: user._id },
+                        { isPublic: true }]
+                }
+            ]
+        }
+    )
+}
+
 module.exports = {
     getNotesForUser,
     getNote,
@@ -39,4 +54,5 @@ module.exports = {
     deleteNote,
     updateNoteContent,
     shareNote,
+    searchNoteForUser,
 }

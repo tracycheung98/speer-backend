@@ -24,7 +24,9 @@ app.use(limiter)
 
 const user = require('./routes/auth.route');
 const note = require('./routes/note.route');
+const search = require('./routes/search.route');
 app.use('/api/auth', user);
 app.use('/api/notes', note);
+app.use('/api/search', search);
 
 module.exports = app

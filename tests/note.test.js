@@ -1,29 +1,22 @@
 const request = require("supertest");
 const db = require('./db')
 const jwt = require('jsonwebtoken');
-const express = require('express');
 
 const app = require("../app");
-const auth = require("../middleware/auth")
-const { getUser, createUser } = require("../controllers/user.controller");
+const { createUser } = require("../controllers/user.controller");
 const Note = require("../models/note.model");
 const {
-    getNotesForUser,
     getNote,
     createNote,
-    deleteNote,
-    updateNoteContent,
-    shareNote,
 } = require("../controllers/note.controller");
-const { get } = require("mongoose");
 require("dotenv").config();
 
 const USERNAME = "Bob";
 const USERNAME_2 = "Alice";
 const PASSWORD = "1234";
-const CONTENT_1 = "note content 1";
-const CONTENT_2 = "note content 2";
-const CONTENT_3 = "note content 3";
+const CONTENT_1 = "Lorem ipsum dolor sit amet";
+const CONTENT_2 = " consectetur adipiscing elsit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua";
+const CONTENT_3 = "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.";
 const TOKEN = jwt.sign(
     { username: USERNAME },
     process.env.TOKEN_SECRET,
