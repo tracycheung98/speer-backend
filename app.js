@@ -23,6 +23,8 @@ const limiter = rateLimit({
 app.use(limiter)
 
 const user = require('./routes/auth.route');
+const note = require('./routes/note.route');
 app.use('/api/auth', user);
+app.use('/api/notes', note);
 
 module.exports = app

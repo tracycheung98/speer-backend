@@ -31,3 +31,12 @@ const updateNoteContent = async (noteId, newContent) => {
 const shareNote = async (noteId) => {
     return Note.findByIdAndUpdate(noteId, { isPublic: true });
 }
+
+module.exports = {
+    getNotesForUser,
+    getNote,
+    createNote,
+    deleteNote,
+    updateNoteContent,
+    shareNote,
+}

@@ -1,12 +1,12 @@
 const request = require("supertest");
 const db = require('./db')
 const jwt = require('jsonwebtoken');
-const express = require('express')
+const express = require('express');
 
 const app = require("../app");
 const User = require("../models/user.model");
 const auth = require("../middleware/auth")
-const { getUser, createUser } = require("../controllers/user.controller")
+const { getUser, createUser } = require("../controllers/user.controller");
 
 const USERNAME = "Alice";
 const PASSWORD = "1234";
@@ -14,7 +14,7 @@ async function createTmpUser() {
     await createUser(USERNAME, PASSWORD)
 }
 
-beforeAll(async () => await db.connect())
+beforeAll(async () => await db.connect("auth-test"))
 
 afterEach(async () => await db.cleanupDatabase())
 
