@@ -203,3 +203,38 @@ describe("PUT /api/notes", () => {
         expect(res.statusCode).toBe(400);
     });
 });
+
+describe("DELETE /api/notes", () => {
+    let note1;
+    let note2;
+    beforeEach(async () => {
+        note1 = await createNote(CONTENT_1, user);
+        note2 = await createNote(CONTENT_2, user2);
+    })
+
+    it("should delete note", async () => {
+        const res = await request(app)
+            .delete(`/api/notes/${note1._id}`)
+            .set("Authorization", `Bearer ${TOKEN}`);
+
+        expect(res.statusCode).toBe(200);
+        let note = await getNote(res.body._id);
+        expect(note).toBe(null);
+    });
+
+    it("should return 400 if note is not found", async () => {
+        const res = await request(app)
+            .delete("/api/notes/fsafsaf")
+            .set("Authorization", `Bearer ${TOKEN}`);
+
+        expect(res.statusCode).toBe(400);
+    });
+
+    it("should return 400 if user is not the owner", async () => {
+        const res = await request(app)
+            .delete(`/api/notes/${note2._id}`)
+            .set("Authorization", `Bearer ${TOKEN}`);
+
+        expect(res.statusCode).toBe(400);
+    });
+});

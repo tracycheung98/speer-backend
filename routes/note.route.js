@@ -23,7 +23,8 @@ const getCommonHandler = (res, message) => {
         console.log(err);
         return res.status(400).send({
             message: message,
-        })}
+        })
+    }
 }
 
 router.get("", async (req, res) => {
@@ -52,7 +53,6 @@ router.post("", async (req, res) => {
         .catch(getCommonHandler(res, "Cannot create note"));
 })
 
-
 router.put("/:id", async (req, res) => {
     const user = await getUser(req.username);
     try {
@@ -77,6 +77,27 @@ router.put("/:id", async (req, res) => {
             return res.status(200).send(notes);
         })
         .catch(getCommonHandler(res, "Cannot update note"));
+})
+
+router.delete("/:id", async (req, res) => {
+    const user = await getUser(req.username);
+    try {
+        var note = await getNote(req.params.id);
+    } catch (err) {
+        return res.status(400).send({
+            message: `Cannot find note with id: ${req.params.id}`
+        });
+    }
+    if (!note.owner.equals(user._id)) {
+        return res.status(400).send({
+            message: "User does not own the note"
+        });
+    }
+    deleteNote(req.params.id)
+        .then(notes => {
+            return res.status(200).send({ message: "Delete sucessfully" });
+        })
+        .catch(getCommonHandler(res, "Cannot delete note"));
 })
 
 module.exports = router;
